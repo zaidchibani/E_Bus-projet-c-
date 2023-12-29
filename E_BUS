@@ -1,0 +1,306 @@
+// Online C compiler to run C program online
+#include <stdio.h>
+#include<string.h>
+#include <stdlib.h>
+
+struct voyageur{
+    char cin[8];
+    char first_name[50];
+    char second_name[50];
+    char adress[50];
+};
+struct bus{
+    int id_bus;
+    int capacity;
+    int seats_remaining;  // les nombres des places restante
+    char departure_time[20];// le temps de depart de bus 
+    char destination[30];
+};
+struct reservation {
+    int id_res;
+    char destination[50];
+    struct voyageur v;
+    struct bus b ;
+};
+struct all_passengers{
+    struct voyageur tabv[50];   // Supposons que nous ayons 50 voyageurs au maximum
+    int nbr_v ;  //nombre des voyageurs enregistrés
+}; //pour stocker les voyageurs
+struct all_reservation{
+    struct reservation tabr[150];   // Supposons que nous ayons 50 reservations au maximum
+    int nbr_r  ;  //nombre des reservations enregistrés
+}; //pour stocker les voyageurs
+struct all_bus{
+    struct bus tb[20];   // Supposons que nous ayons 50 bus au maximum
+    int nbr_b;  //nombre des bus enregistrés
+} ;//pour stocker les voyageurs
+void saisirInfoVoyageur(struct voyageur *voy) {
+    printf("Saisir les informations du voyageur :\n");
+    printf("CIN : ");
+    scanf("%s", voy->cin);
+    printf("Prénom : ");
+    scanf("%s", voy->first_name);
+    printf("Nom : ");
+    scanf("%s", voy->second_name);
+    printf("Adresse : ");
+    scanf("%s", voy->adress);
+}
+void creerNouveauVoyageur(struct all_passengers *passengers) {
+    struct voyageur newVoyageur;
+    saisirInfoVoyageur(&newVoyageur);
+
+    if (passengers->nbr_v < 50) {
+        passengers->tabv[passengers->nbr_v++] = newVoyageur;
+        printf("Nouveau voyageur ajouté avec succès.\n");
+    } else {
+        printf("Limite de voyageurs atteinte.\n");
+    }
+}
+void saisirInfoBus(struct bus *b) {
+    printf("Saisir les informations du bus :\n");
+    printf("ID du bus : ");
+    scanf("%d", &b->id_bus);
+    b->capacity=40;
+
+    b->seats_remaining = b->capacity;  
+    printf("Nombre de sièges restants : %d\n", b->seats_remaining);
+
+    printf("Heure de départ : ");
+    scanf("%s", b->departure_time);
+    printf("Destination : ");
+    scanf("%s", b->destination);
+}
+void creerNouveauBus(struct all_bus *buses) {
+    struct bus newBus;
+    saisirInfoBus(&newBus);
+
+    if (buses->nbr_b < 20) {
+        buses->tb[buses->nbr_b++] = newBus;
+    } 
+}
+void saisirInfoReservation(struct reservation *r, struct all_bus *buses) {
+    printf("Saisir les informations de la réservation :\n");
+    printf("ID de la réservation : ");
+    scanf("%d", &r->id_res);
+    printf("Destination : ");
+    scanf("%s", r->destination);
+
+    saisirInfoVoyageur(&r->v);
+
+    int busID;
+    printf("Saisir l'ID du bus : ");
+    scanf("%d", &busID);
+    r->b.id_bus=busID;
+    
+    int i;
+    for (i = 0; i < buses->nbr_b; i++) {
+        if (buses->tb[i].id_bus == busID && buses->tb[i].seats_remaining > 0) {
+            r->b = buses->tb[i];
+            buses->tb[i].seats_remaining--;
+            break;}
+    }
+
+    if (i >= buses->nbr_b) {
+        printf("Aucun bus trouvé avec l'ID %d.\n", busID);
+        return;
+    }
+    else{
+        if(buses->tb[i].seats_remaining <=0){
+            printf("pas de places disponibles pour le bus .\n", busID);
+        }
+    }
+}
+void creerNouvelleReservation(struct all_reservation *reservations, struct all_bus *buses) {
+    struct reservation newReservation;
+    saisirInfoReservation(&newReservation, buses);
+    if (newReservation.b.id_bus >= 0 && newReservation.b.id_bus < 20 && 
+        reservations->nbr_r < 150 && newReservation.b.seats_remaining > 0)  
+    {
+        reservations->tabr[reservations->nbr_r++] = newReservation;
+        printf("Nouvelle réservation ajoutée avec succès.\n");
+    } 
+    
+}
+void afficherDetailsBus(struct all_bus *buses) {
+    printf("Détails des bus :\n");
+    for (int i = 0; i < buses->nbr_b; i++) {
+        printf("Bus %d - Capacité : %d,destination  : %s, nombre des places restantes : %d, Heure de départ : %s\n",
+               buses->tb[i].id_bus, buses->tb[i].capacity,buses->tb[i].destination, buses->tb[i].seats_remaining, buses->tb[i].departure_time);
+    }
+}
+void afficherDetailsReservation(struct all_reservation *reservations, int id_res, char cin[8]) {
+    for (int i = 0; i < reservations->nbr_r; i++) {
+        if (reservations->tabr[i].id_res == id_res && strcmp(reservations->tabr[i].v.cin, cin) == 0) {
+            printf("Détails de la réservation :\n");
+            printf("ID de la réservation : %d\n", reservations->tabr[i].id_res);
+            printf("Destination : %s\n", reservations->tabr[i].destination);
+            
+            printf("Voyageur :\n");
+            printf("CIN : %s\n", reservations->tabr[i].v.cin);
+            printf("Prénom : %s\n", reservations->tabr[i].v.first_name);
+            printf("Nom : %s\n", reservations->tabr[i].v.second_name);
+            printf("Adresse : %s\n", reservations->tabr[i].v.adress);
+
+            printf("Bus :\n");
+            printf("ID du bus : %d\n", reservations->tabr[i].b.id_bus);
+            printf("Capacité du bus : %d\n", reservations->tabr[i].b.capacity);
+            printf("Nombre de sièges restants dans le bus : %d\n", reservations->tabr[i].b.seats_remaining);
+            printf("Heure de départ : %s\n", reservations->tabr[i].b.departure_time);
+
+            return;
+        }
+    }
+
+    printf("Aucune réservation trouvée avec l'ID %d pour le voyageur avec le CIN %s.\n", id_res, cin);
+}
+
+void modifierReservation(struct all_reservation *reservations, int id,struct all_bus *buses ) {
+    int i;
+    printf("Modification de la réservation %d :\n", id);
+    for ( i = 0; i < reservations->nbr_r; i++) {
+        if (reservations->tabr[i].id_res == id) {
+            struct voyageur voy;
+            int newidBus;
+            scanf("%d",&newidBus);
+            for (int i = 0; i < buses->nbr_b; i++) {
+            if (buses->tb[i].id_bus == newidBus){
+                reservations->tabr[i].b=buses->tb[i];
+            }}
+            if(i>=reservations->nbr_r){
+                printf("Aucun bus trouvé avec l'ID %d.\n", newidBus);
+                return;
+            }
+            saisirInfoVoyageur(&voy);
+            reservations->tabr[i].v=voy;
+            printf("Nouvelle destination : ");
+            scanf("%s", reservations->tabr[i].destination);
+
+            printf("Les informations de la réservation %d ont été modifiées avec succès.\n", id);
+            return;
+        }
+    }
+
+    printf("Aucune réservation trouvée avec l'ID %d.\n", id);
+}
+void supprimerReservation(struct all_reservation *reservations, int id) {
+    for (int i = 0; i < reservations->nbr_r; i++) {
+        if (reservations->tabr[i].id_res == id) {
+            for (int j = i; j < reservations->nbr_r - 1; j++) {
+                reservations->tabr[j] = reservations->tabr[j + 1];
+            }
+            reservations->nbr_r--;
+            reservations->tabr[i].b.seats_remaining++;
+
+            printf("La réservation avec l'ID %d a été supprimée avec succès.\n", id);
+            return;
+        }
+    }
+
+    printf("Aucune réservation trouvée avec l'ID %d.\n", id);
+}
+void supprimerVoyageur(struct all_passengers *passengers, const char *cin) {
+    for (int i = 0; i < passengers->nbr_v; i++) {
+        if (strcmp(passengers->tabv[i].cin, cin) == 0) {
+            for (int j = i; j < passengers->nbr_v - 1; j++) {
+                passengers->tabv[j] = passengers->tabv[j + 1];
+            }
+            passengers->nbr_v--;
+
+            printf("Le voyageur avec le CIN %s a été supprimé avec succès.\n", cin);
+            return;
+        }
+    }
+
+    printf("Aucun voyageur trouvé avec le CIN %s.\n", cin);
+}
+
+
+int main (){
+    int choice;
+    struct all_passengers ap;
+    ap.nbr_v=0;
+    struct all_reservation ar;
+    ar.nbr_r=0;
+    struct all_bus ab;
+    ab.nbr_b=20;
+    char cities[20][50] = {"Tunis", "Sfax", "Sousse", "Ettadhamen", "Kairouan", "Bizerte", "Gabes", "Ariana", "Gafsa", "La Marsa",  "Kasserine","Monastir", "Hammamet", "Nabeul", "Ben Arous", "El Mourouj","Medenine", "Zarzis", "Tataouine", "Tozeur"};
+
+    for (int i = 0; i < 20; i++) {
+        ab.tb[i].id_bus=i;
+        ab.tb[i].capacity=40;
+        ab.tb[i].seats_remaining=40;
+        strcpy(ab.tb[i].departure_time, "08:00");  // Set a default departure time
+        strcpy(ab.tb[i].destination, cities[i]);
+        
+    }
+    
+    do {
+    do {
+        printf("1 : Creer un nouveau compte \n");
+        printf("2 : Creer une nouvelle reservation \n");
+        printf("3 : Afficher les details des bus \n");
+        printf("4 : Afficher les details d'une reservation \n");
+        printf("5 : modifier une reservation \n");
+        printf("6 : supprimer une reservation \n");
+        printf("7 : supprimer un voyageur \n");
+
+        
+        printf("0 : Quitter \n");
+        scanf("%d", &choice);
+        printf("Merci d entrer votre choix :\n");
+    }while(choice <0 || choice >7 );
+    
+    switch(choice)
+    {
+        case 1:
+        printf("You selected Option 1.\n");
+        creerNouveauVoyageur(&ap);
+            break;
+        case 2:
+         printf("You selected Option 2.\n");
+         creerNouvelleReservation(&ar,&ab);
+            break;
+        case 3:
+             printf("You selected Option 3\n");
+             afficherDetailsBus(&ab);
+            break;
+        case 4:
+            printf("You selected Option 4\n");
+            int idToDisplay;
+            char cinToDisplay[8];
+            printf("Entrez l'ID de la réservation à afficher : ");
+            scanf("%d", &idToDisplay);
+            printf("Entrez le CIN du voyageur associé : ");
+            scanf("%s", cinToDisplay);
+            afficherDetailsReservation(&ar, idToDisplay, cinToDisplay);
+           break;
+        case 5:
+            printf("You selected Option 5\n");
+            int id;
+            printf("Entrez l'ID de la réservation à modifier : ");
+            scanf("%d", &id);
+            modifierReservation(&ar, id,&ab);
+           break;
+        case 6:
+            printf("You selected Option 6\n");
+            int idToRemove;
+            printf("Entrez l'ID de la réservation à supprimer : ");
+            scanf("%d", &idToRemove);
+            supprimerReservation(&ar, idToRemove);
+            break;
+        case 7:
+            printf("You selected Option 7\n");
+            char cinToRemove[8];
+            printf("Entrez le CIN du voyageur à supprimer : ");
+            scanf("%s", cinToRemove);
+            supprimerVoyageur(&ap, cinToRemove);
+            break;
+        
+         
+        
+    }
+        
+    }while(choice !=0) ;
+    
+    return 0;
+}
